@@ -30,20 +30,6 @@ namespace Zion.OFXParse.Test
             }
             Assert.IsFalse(extracts.Where(x => x.ImportingErrors.Any()).Any());
             Assert.IsFalse(extracts.Count == 0);
-            System.Console.WriteLine(extracts.Sum(x=>x.Transactions.Sum(x=>x.Amount)));
-
-            var trans = extracts.Select(x => x.Transactions).ToList();
-            foreach (var item in trans)
-            {
-                foreach (var tran in item)
-                {
-                    System.Console.WriteLine($"{tran.Amount}\t{tran.Description}");
-                }
-            }
-            //45
-            System.Console.WriteLine(extracts.Sum(x => x.Transactions.Count()));  
-            System.Console.WriteLine(extracts.Sum(x => x.Transactions.Where(y=>y.TransactionType == OFXParser.TransactionType.CREDIT).Sum(x => x.Amount)));
-            System.Console.WriteLine(extracts.Sum(x => x.Transactions.Where(y => y.TransactionType == OFXParser.TransactionType.DEBIT).Sum(x => x.Amount)));
         }
     }
 }
