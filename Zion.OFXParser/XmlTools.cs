@@ -7,16 +7,18 @@ namespace Zion.OFXParser
 {
     internal class XmlTools
     {
-        internal static XmlTextReader ParseToXml(string ofxSourceFile)
+        internal static XmlTextReader ParseFromFileToXml(string ofxSourceFile)
         {
             if(!File.Exists(ofxSourceFile))
                 throw new FileNotFoundException("OFX source file not found: " + ofxSourceFile);
 
             try
             {
-                StringBuilder ofxTranslated = TranslateToXml(ofxSourceFile);
-                TextReader txt = new StringReader(ofxTranslated.ToString());
-                return new XmlTextReader(txt);
+                if (!File.Exists(ofxSourceFile))
+                    throw new FileNotFoundException("OFX source file not found: " + ofxSourceFile);
+
+                StreamReader sr = File.OpenText(ofxSourceFile);
+                return TranslateToXml(sr);
             }
             catch 
             {
@@ -24,15 +26,42 @@ namespace Zion.OFXParser
             }
         }
 
-        private static StringBuilder TranslateToXml(string ofxSourceFile)
+        internal static XmlTextReader ParseFromStringToXml(string ofxSource)
+        {
+            if (string.IsNullOrEmpty(ofxSource))
+                throw new InvalidDataException("OFX source file invalid: " + ofxSource);
+
+            try
+            {
+                var mr = new MemoryStream(Encoding.UTF8.GetBytes(ofxSource));
+                var sr = new StreamReader(mr);
+                return TranslateToXml(sr);
+            }
+            catch
+            {
+                throw new FormatException($"Format of file is not valid: {ofxSource}");
+            }
+        }
+
+        internal static XmlTextReader ParseFromBytesToXml(byte[] ofx)
+        {
+            try
+            {
+                var mr = new MemoryStream(ofx);
+                var sr = new StreamReader(mr);
+                return TranslateToXml(sr);
+            }
+            catch
+            {
+                throw new FormatException($"Format of OFX file is not valid");
+            }
+        }
+
+        private static XmlTextReader TranslateToXml(StreamReader sr)
         {
             StringBuilder result = new StringBuilder();
             string linha;
 
-            if (!File.Exists(ofxSourceFile))
-                throw new FileNotFoundException("OFX source file not found: " + ofxSourceFile);
-
-            StreamReader sr = File.OpenText(ofxSourceFile);
             while ((linha = sr.ReadLine()) != null)
             {
                 linha = linha.Trim();
@@ -50,7 +79,8 @@ namespace Zion.OFXParser
             }
             sr.Close();
 
-            return result;
+            var resultReader = new StringReader(result.ToString());
+            return new XmlTextReader(resultReader);
         }
 
         private static string ReturnFinalTag(string content)

@@ -1,15 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Xml;
 using Zion.OFXParser.Modelos;
 
 namespace Zion.OFXParser
 {
-    public class Parser
+    public static class Parser
     {
-        public static Extract ParseToExtract(string ofxSourceFile)
+        public static Extract ParseToExtractFromString(string ofx)
+        {
+            var meuXml = XmlTools.ParseFromStringToXml(ofx);
+            return ParseToExtractFromFile(meuXml);
+        }
+
+        public static Extract ParseToExtractFromBytes(byte[] ofx)
+        {
+            var meuXml = XmlTools.ParseFromBytesToXml(ofx);
+            return ParseToExtractFromFile(meuXml);
+        }
+
+        public static Extract ParseToExtractFromFile(string ofxSourceFile)
+        {
+            var meuXml = XmlTools.ParseFromFileToXml(ofxSourceFile);
+            return ParseToExtractFromFile(meuXml);
+        }
+
+        internal static Extract ParseToExtractFromFile(XmlTextReader meuXml)
         {
             var settings = new ParserSettings();
 
@@ -23,7 +38,6 @@ namespace Zion.OFXParser
             HeaderExtract cabecalho = new HeaderExtract();
             Extract extrato = new Extract(cabecalho, conta, "");
 
-            var meuXml = XmlTools.ParseToXml(ofxSourceFile);
             try
             {
                 while (meuXml.Read())
@@ -211,7 +225,7 @@ namespace Zion.OFXParser
         }
     }
 
-    public class ParserSettings
+    internal class ParserSettings
     {
         public bool IsValidateHeader { get; set; }
         public bool IsValidateAccountData { get; set; }
